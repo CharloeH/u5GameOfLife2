@@ -5,12 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_312551u5GameOfLife"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" x:Name="window" MouseDown="Window_MouseDown">
     <StackPanel>
-        <TextBox x:Name="txtInput" IsMouseDirectlyOverChanged="TxtInput_IsMouseDirectlyOverChanged">x,y</TextBox>
-        <Button x:Name="btnAdd" Click="BtnAdd_Click">add</Button>
         <Button x:Name="btnStart" Click="BtnStart_Click">start</Button>
-
+        <Button x:Name="btnHelp" Click="BtnHelp_Click">help</Button>
         <Canvas x:Name="canvas"/>
     </StackPanel>
 </Window>

@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using System.Windows.Threading;
 namespace _312551u5GameOfLife
 {
     /// <summary>
@@ -22,124 +22,143 @@ namespace _312551u5GameOfLife
     {
         Rectangle[,] map;
         bool[,] mapMatrix;
+        List<Point> liveCells;
+        List<Point> deadCells;
+        DispatcherTimer timer;
+
         public MainWindow()
         {
             InitializeComponent();
-        }
-
-
-        private void TxtInput_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            txtInput.Text = "";
+            liveCells = new List<Point>();
+            initializeMap(new Point(-1,-1));
         }
 
         private void BtnStart_Click(object sender, RoutedEventArgs e)
         {
-            
-            MessageBoxResult mbr = MessageBox.Show(updateMap(), "Day Finished:" , MessageBoxButton.YesNo);
-            if(mbr == MessageBoxResult.No)
-            {
-                removeAll();
-            }
+            timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, 0, 0, 1000 / 15);
+            timer.Tick += timer_Tick;
+            // timer.Start();
+            updateMap();
+
         }
-        private void BtnAdd_Click(object sender, RoutedEventArgs e)
+        private void timer_Tick(object sender, EventArgs e)
         {
-            int.TryParse(txtInput.Text[0].ToString(), out int posX);
-            int.TryParse(txtInput.Text[2].ToString(), out int posY);
-            initializeMap(new Point(posX, posY));
+            updateMap();
         }
         private void initializeMap(Point p)
         {
-            map = new Rectangle[20, 20];
-            mapMatrix = new bool[20,20];
+         
+            mapMatrix = new bool[4,4];
+            map = new Rectangle[4,4];
             int posX = 0, posY = 0;
-            for(int x = 0; x < map.GetLength(1); x++)
+            for(int x = 0; x < mapMatrix.GetLength(1); x++)
             {
-                for(int y = 0; y < map.GetLength(0); y++)
+                for(int y = 0; y < mapMatrix.GetLength(0); y++)
                 {
-                    mapMatrix[y, x] = new bool();
                     map[y, x] = new Rectangle();
+                    map[y, x].Height = 25;
+                    map[y, x].Width = 25;
                     map[y, x].Stroke = Brushes.Black;
-                    map[y, x].Height = 15;
-                    map[y, x].Width = 15;
-                    if(x == p.X & y == p.Y)
+                    if(new Point(x,y) == p)
                     {
-                        mapMatrix[y, x] = true;
                         map[y, x].Fill = Brushes.Red;
-                        MessageBox.Show(x.ToString() + y.ToString());
+                        liveCells.Add(new Point(x, y));
+                        foreach (Point point in liveCells)
+                        {
+                            Console.WriteLine(point);
+                        }
                     }
+
+                    canvas.Children.Add(map[y, x]);
                     Canvas.SetTop(map[y, x], posY);
                     Canvas.SetLeft(map[y, x], posX);
-                    canvas.Children.Add(map[y, x]);
-                    posY += 15;
+                    posY += 25;
                 }
                 posY = 0;
-                posX += 15;
+                posX += 25;
             }
         }
         private void removeAll()
         {
-            foreach(Rectangle r in map)
-            {
-                r.Fill = Brushes.White;
-            }
+           
         }
-        private string updateMap()
+        private void updateMap()
         {
-            int counter;
-            string update = "";
+            deadCells = new List<Point>();
             for (int x = 0; x < map.GetLength(1); x++)
             {
                 for (int y = 0; y < map.GetLength(0); y++)
                 {
-                    if(mapMatrix[y,x] == true)
-                    {
-                        counter = 0;
-                        if(mapMatrix[x, y] == true)
+                   
+                   
+                        int counter = 0;
+                        if (liveCells.Contains(new Point(x, y + 1)))
                         {
                             counter++;
                         }
-                        if(mapMatrix[x, y-1] == true)
+                        if (liveCells.Contains(new Point(x, y - 1)))
                         {
                             counter++;
                         }
-                        if(mapMatrix[x,y+1] == true)
+                        if (liveCells.Contains(new Point(x + 1, y - 1)))
                         {
                             counter++;
                         }
-                        if(mapMatrix[x-1, y] == true)
+                        if (liveCells.Contains(new Point(x - 1, y - 1)))
                         {
                             counter++;
                         }
-                        if(mapMatrix[x+1, y] == true)
+                        if (liveCells.Contains(new Point(x + 1, y + 1)))
                         {
                             counter++;
                         }
-                        if(mapMatrix[x+1, y+1] == true)
+                        if (liveCells.Contains(new Point(x - 1, y)))
                         {
                             counter++;
                         }
-                        if(mapMatrix[x-1, y-1] == true)
+                        if (liveCells.Contains(new Point(x - 1, y)))
                         {
                             counter++;
                         }
-
-                        if (counter < 1)
+                        if (counter > 2)
                         {
-                            update += "cell (" + x + "," + y + ") multiplied\r";
+                            liveCells.Add(new Point(x, y));
                         }
-                        else if (counter == 1)
+                        else if(counter < 1) 
                         {
-                            update += "cell (" + x + "," + y + ") lived\r";
+                                deadCells.Add(new Point(x, y));
+                            
                         }
-                        else
-                        {
-                            update += "cell (" + x + "," + y + ") died\r";
-                        }
-                    }
+                    
                 }
             }
-            return update;
+            foreach(Point p in deadCells)
+            {
+                if(liveCells.Contains(p))
+                {
+                    liveCells.Remove(p);
+                    map[(int)p.Y, (int)p.X].Fill = Brushes.White;
+                }
+          
+            }
+            foreach(Point p in liveCells)
+            {
+                
+                map[(int)p.Y, (int)p.X].Fill = Brushes.Red;
+            }
+        }
+           
+        private void BtnHelp_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point mPoint = new Point((int)Mouse.GetPosition(canvas).X/25, (int)Mouse.GetPosition(canvas).Y/25);
+            initializeMap(mPoint);
         }
     }
 }
